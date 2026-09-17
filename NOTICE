@@ -1,0 +1,15 @@
+LimeReport PyQt6
+Copyright (C) 2026 LimeReport PyQt6 contributors
+
+This project provides Python bindings for LimeReport and is licensed under
+GPL-3.0-or-later.
+
+LimeReport
+Copyright (C) Alexander Arin and LimeReport contributors
+https://github.com/fralx/LimeReport
+Licensed under LGPL-3.0-or-later.
+
+PyQt6
+Copyright (C) Riverbank Computing Limited
+https://www.riverbankcomputing.com/software/pyqt/
+Available under GPL-3.0-only or a commercial license.
