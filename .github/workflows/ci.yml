@@ -92,13 +92,16 @@ jobs:
   build-windows:
     runs-on: windows-2022
     timeout-minutes: 60
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
       - uses: jurplel/install-qt-action@v4
         with:
           version: "6.11.2"
@@ -109,9 +112,9 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: build/cmake
-          key: windows-py3.12-qt6.11.2-${{ hashFiles('CMakeLists.txt', 'pyproject.toml', 'cpp/**', 'src/**', '.gitmodules') }}
+          key: windows-py${{ matrix.python-version }}-qt6.11.2-${{ hashFiles('CMakeLists.txt', 'pyproject.toml', 'cpp/**', 'src/**', '.gitmodules') }}
           restore-keys: |
-            windows-py3.12-qt6.11.2-
+            windows-py${{ matrix.python-version }}-qt6.11.2-
       - run: python -m pip install --upgrade pip
       - run: pip install "PyQt6==6.11.0"
       - name: Qt SDK matches PyQt6 runtime
@@ -134,6 +137,13 @@ jobs:
       - run: python tests/smoke.py
         env:
           QT_QPA_PLATFORM: offscreen
+      - run: python -m pip wheel . --no-deps -w wheelhouse/
+        env:
+          CMAKE_PREFIX_PATH: ${{ env.Qt6_DIR }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-wheel-py${{ matrix.python-version }}
+          path: wheelhouse/*.whl
   build-macos:
     runs-on: macos-14
     timeout-minutes: 60
