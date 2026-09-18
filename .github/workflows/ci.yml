@@ -1,0 +1,182 @@
+name: ci
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgl1 libegl1 libdbus-1-3 libxkbcommon0 libfontconfig1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.11.2"
+          modules: "qtsvg qtdeclarative"
+          cache: true
+      - uses: actions/cache@v4
+        with:
+          path: build/cmake
+          key: linux-py3.12-qt6.11.2-${{ hashFiles('CMakeLists.txt', 'pyproject.toml', 'cpp/**', 'src/**', '.gitmodules') }}
+          restore-keys: |
+            linux-py3.12-qt6.11.2-
+      - run: python -m pip install --upgrade pip
+      - run: pip install "PyQt6==6.11.0" build
+      - name: Qt SDK matches PyQt6 runtime
+        shell: python
+        run: |
+          import shutil
+          import subprocess
+          import sys
+          from importlib.metadata import version
+          qmake = shutil.which("qmake6") or shutil.which("qmake")
+          sdk = subprocess.check_output([qmake, "-query", "QT_VERSION"], text=True).strip()
+          rt = version("PyQt6-Qt6")
+          print("qt-sdk=" + sdk + " pyqt6-qt=" + rt)
+          if tuple(sdk.split(".")[:2]) != tuple(rt.split(".")[:2]):
+              print("Qt SDK major.minor does not match PyQt6 runtime Qt")
+              sys.exit(1)
+      - run: python -m build --sdist -o dist
+      - name: sdist vendors pinned LimeReport source
+        shell: python
+        run: |
+          import glob
+          import sys
+          import tarfile
+          names = tarfile.open(glob.glob("dist/*.tar.gz")[0]).getnames()
+          top = names[0].split("/")[0] + "/"
+          required = [
+              "CMakeLists.txt",
+              "pyproject.toml",
+              "LICENSE",
+              "NOTICE",
+              "README.md",
+              "cpp/bindings.cpp",
+              "src/limereport_pyqt6/__init__.py",
+              "tests/smoke.py",
+              "vendor/LimeReport/CMakeLists.txt",
+              "vendor/LimeReport/LICENSE",
+              "vendor/LimeReport/COPYING",
+              "vendor/LimeReport/limereport/lrreportengine.h",
+              "vendor/LimeReport/3rdparty/zint-2.10.0/COPYING",
+              "vendor/LimeReport/3rdparty/easyprofiler/LICENSE.MIT",
+              "vendor/LimeReport/demo_r1/demo_reports/change_alignment.lrxml",
+          ]
+          missing = [r for r in required if top + r not in names]
+          leaked = [n for n in names if "/.git/" in n or "/__pycache__/" in n or ".egg-info" in n]
+          print("members=" + str(len(names)))
+          if missing:
+              print("missing=" + str(missing))
+              sys.exit(1)
+          if leaked:
+              print("leaked=" + str(leaked))
+              sys.exit(1)
+      - run: pip install ./dist/*.tar.gz -v
+        env:
+          CMAKE_PREFIX_PATH: ${{ env.Qt6_DIR }}
+      - run: python tests/smoke.py
+        env:
+          QT_QPA_PLATFORM: offscreen
+      - run: |
+          f=$(python -c "import limereport_pyqt6._core as m; print(m.__file__)")
+          readelf -d "$f" | grep -E "RUNPATH|RPATH"
+          readelf -d "$f" | grep -F '$ORIGIN/../PyQt6/Qt6/lib'
+          test -z "$(ldd "$f" | grep 'not found' || true)"
+  build-windows:
+    runs-on: windows-2022
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.11.2"
+          arch: "win64_msvc2019_64"
+          modules: "qtsvg qtdeclarative"
+          cache: true
+      - uses: actions/cache@v4
+        with:
+          path: build/cmake
+          key: windows-py3.12-qt6.11.2-${{ hashFiles('CMakeLists.txt', 'pyproject.toml', 'cpp/**', 'src/**', '.gitmodules') }}
+          restore-keys: |
+            windows-py3.12-qt6.11.2-
+      - run: python -m pip install --upgrade pip
+      - run: pip install "PyQt6==6.11.0"
+      - name: Qt SDK matches PyQt6 runtime
+        shell: python
+        run: |
+          import shutil
+          import subprocess
+          import sys
+          from importlib.metadata import version
+          qmake = shutil.which("qmake6") or shutil.which("qmake")
+          sdk = subprocess.check_output([qmake, "-query", "QT_VERSION"], text=True).strip()
+          rt = version("PyQt6-Qt6")
+          print("qt-sdk=" + sdk + " pyqt6-qt=" + rt)
+          if tuple(sdk.split(".")[:2]) != tuple(rt.split(".")[:2]):
+              print("Qt SDK major.minor does not match PyQt6 runtime Qt")
+              sys.exit(1)
+      - run: pip install . -v
+        env:
+          CMAKE_PREFIX_PATH: ${{ env.Qt6_DIR }}
+      - run: python tests/smoke.py
+        env:
+          QT_QPA_PLATFORM: offscreen
+  build-macos:
+    runs-on: macos-14
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.11.2"
+          modules: "qtsvg qtdeclarative"
+          cache: true
+      - uses: actions/cache@v4
+        with:
+          path: build/cmake
+          key: macos-py3.12-qt6.11.2-${{ hashFiles('CMakeLists.txt', 'pyproject.toml', 'cpp/**', 'src/**', '.gitmodules') }}
+          restore-keys: |
+            macos-py3.12-qt6.11.2-
+      - run: python -m pip install --upgrade pip
+      - run: pip install "PyQt6==6.11.0"
+      - name: Qt SDK matches PyQt6 runtime
+        shell: python
+        run: |
+          import shutil
+          import subprocess
+          import sys
+          from importlib.metadata import version
+          qmake = shutil.which("qmake6") or shutil.which("qmake")
+          sdk = subprocess.check_output([qmake, "-query", "QT_VERSION"], text=True).strip()
+          rt = version("PyQt6-Qt6")
+          print("qt-sdk=" + sdk + " pyqt6-qt=" + rt)
+          if tuple(sdk.split(".")[:2]) != tuple(rt.split(".")[:2]):
+              print("Qt SDK major.minor does not match PyQt6 runtime Qt")
+              sys.exit(1)
+      - run: pip install . -v
+        env:
+          CMAKE_PREFIX_PATH: ${{ env.Qt6_DIR }}
+      - run: python tests/smoke.py
+        env:
+          QT_QPA_PLATFORM: offscreen
+      - run: |
+          f=$(python -c "import limereport_pyqt6._core as m; print(m.__file__)")
+          otool -l "$f" | grep -A2 LC_RPATH
+          otool -l "$f" | grep -F "@loader_path/../PyQt6/Qt6/lib"

@@ -1,15 +1,35 @@
 LimeReport PyQt6
 Copyright (C) 2026 LimeReport PyQt6 contributors
+Licensed under GPL-3.0-or-later. See LICENSE.
 
-This project provides Python bindings for LimeReport and is licensed under
-GPL-3.0-or-later.
+This project statically links the LimeReport report engine into its
+native extension module and loads Qt shared libraries provided at
+runtime by the PyQt6 wheels. Qt itself is not bundled in this project.
 
-LimeReport
-Copyright (C) Alexander Arin and LimeReport contributors
-https://github.com/fralx/LimeReport
-Licensed under LGPL-3.0-or-later.
+Bundled source: vendor/LimeReport
+Upstream: https://github.com/fralx/LimeReport
+Pinned: tag 1.7.23 (commit e6210b58a46ab14c0ff8a409b5fa5d339937ea7c)
+Copyright (C) 2015 Alexander Arin, see the vendored COPYING header.
+The vendored LICENSE file carries the GNU Lesser General Public
+License v3, and the vendored COPYING header states the library is made
+available under GPL-3.0-or-later or LGPL-3.0-or-later terms.
+This project's combined work is distributed under GPL-3.0-or-later.
+Full texts ship as vendor/LimeReport/LICENSE and
+vendor/LimeReport/COPYING.
 
-PyQt6
-Copyright (C) Riverbank Computing Limited
-https://www.riverbankcomputing.com/software/pyqt/
-Available under GPL-3.0-only or a commercial license.
+Runtime dependency: PyQt6 by Riverbank Computing Limited
+(https://www.riverbankcomputing.com/software/pyqt/),
+GPL-3.0-only or commercial. Qt libraries ship via the PyQt6-Qt6 wheel
+(LGPL v3 per that wheel's metadata) and remain under their own licenses.
+
+Vendored but not compiled into this project's default build
+(USE_QT6=ON, LIMEREPORT_STATIC=ON, ENABLE_ZINT=OFF,
+ENABLE_DIALOG_DESIGNER=OFF, HAVE_UI_LOADER=OFF, LIMEREPORT_DEMO=OFF):
+vendor/LimeReport/3rdparty/zint-2.10.0, GPL-3.0, see COPYING there.
+vendor/LimeReport/3rdparty/dark_style_sheet, MIT,
+Copyright (c) 2013-2017 Colin Duquesnoy.
+vendor/LimeReport/3rdparty/light_style_sheet, MIT,
+Copyright (c) 2013-2017 Colin Duquesnoy.
+vendor/LimeReport/3rdparty/easyprofiler, MIT plus Apache-2.0,
+Copyright (c) 2017 Sergey Yagovtsev, Victor Zarubkin,
+see LICENSE.MIT and LICENSE.APACHE there.

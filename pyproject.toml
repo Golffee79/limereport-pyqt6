@@ -1,0 +1,58 @@
+[build-system]
+requires = ["scikit-build-core>=1.0", "pybind11>=3.0"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "limereport-pyqt6"
+version = "0.1.0.dev0"
+description = "Python bindings for LimeReport using PyQt6 and Qt 6"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-3.0-or-later"
+authors = [{ name = "Golffee79" }]
+dependencies = ["PyQt6>=6.8,<6.12"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: Developers",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://github.com/Golffee79/limereport-pyqt6"
+Repository = "https://github.com/Golffee79/limereport-pyqt6"
+Issues = "https://github.com/Golffee79/limereport-pyqt6/issues"
+
+[tool.scikit-build]
+cmake.build-type = "Release"
+build-dir = "build/cmake/{cache_tag}"
+install.components = ["python"]
+wheel.packages = ["src/limereport_pyqt6"]
+wheel.license-files = ["LICENSE", "NOTICE", "vendor/LimeReport/LICENSE", "vendor/LimeReport/COPYING"]
+sdist.inclusion-mode = "explicit"
+sdist.include = [
+    "CMakeLists.txt",
+    "pyproject.toml",
+    "LICENSE",
+    "NOTICE",
+    "README.md",
+    "cpp/**",
+    "src/**",
+    "tests/**",
+    "vendor/**",
+]
+sdist.exclude = [
+    "__pycache__/",
+    "*.pyc",
+    "*.pyo",
+    ".git/",
+    "build/",
+    "dist/",
+    "*.egg-info/",
+    ".pytest_cache/",
+]
