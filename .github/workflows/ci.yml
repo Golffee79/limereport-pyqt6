@@ -104,6 +104,7 @@ jobs:
           version: "6.11.2"
           arch: "win64_msvc2022_64"
           setup-python: false
+          aqtsource: "git+https://github.com/miurahr/aqtinstall.git@master"
           cache: true
       - uses: actions/cache@v4
         with:
