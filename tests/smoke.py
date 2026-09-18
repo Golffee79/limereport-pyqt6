@@ -41,7 +41,10 @@ def export_text(engine, tmp):
 class Smoke(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        from PyQt6.QtGui import QFontDatabase
         cls.app = QApplication.instance() or QApplication([])
+        font_id = QFontDatabase.addApplicationFont(str(HERE / "fonts" / "DejaVuSans.ttf"))
+        assert font_id >= 0, "bundled test font failed to load"
 
     def make_engine(self):
         engine = ReportEngine()
