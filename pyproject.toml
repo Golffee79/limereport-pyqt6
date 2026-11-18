@@ -43,6 +43,7 @@ sdist.include = [
     "README.md",
     "cpp/**",
     "patches/**",
+    "scripts/**",
     "src/**",
     "tests/**",
     "vendor/**",
