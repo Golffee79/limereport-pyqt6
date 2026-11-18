@@ -5,7 +5,7 @@ if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/LimeReport/CMakeLists.txt")
 endif()
 # Apply the pinned downstream change without relying on Git metadata.
 # Source distributions contain vendor files but no valid submodule .git directory.
-find_package(Python COMPONENTS Interpreter REQUIRED)
+find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
 execute_process(
   COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/scripts/apply_lime_patch.py"
           "${CMAKE_CURRENT_SOURCE_DIR}/vendor/LimeReport/limereport/lrreportrender.cpp"
