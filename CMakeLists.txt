@@ -63,6 +63,11 @@ if(APPLE)
 elseif(UNIX)
   set_target_properties(_core PROPERTIES INSTALL_RPATH "$ORIGIN:$ORIGIN/../PyQt6/Qt6/lib" BUILD_WITH_INSTALL_RPATH TRUE INSTALL_RPATH_USE_LINK_PATH FALSE)
 endif()
+# Record the Qt version used to compile the extension in the wheel.
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cpp/_build_qt.py.in"
+               "${CMAKE_CURRENT_BINARY_DIR}/_build_qt.py" @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/_build_qt.py"
+        DESTINATION limereport_pyqt6 COMPONENT python)
 install(
     TARGETS _core
     LIBRARY DESTINATION limereport_pyqt6 COMPONENT python
