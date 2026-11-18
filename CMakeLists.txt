@@ -3,6 +3,33 @@ project(limereport_pyqt6 LANGUAGES CXX)
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/LimeReport/CMakeLists.txt")
   message(FATAL_ERROR "vendor/LimeReport is missing: build from a checkout with submodules or from the sdist which vendors LimeReport 1.7.23")
 endif()
+# Apply our downstream fix to the pinned LimeReport submodule at configure time.
+# A clean checkout and repeated CMake configuration are both supported.
+find_package(Git REQUIRED)
+set(LIMEREPORT_PATCH "${CMAKE_CURRENT_SOURCE_DIR}/patches/0001-repeat-group-header-on-footer-page.patch")
+execute_process(
+  COMMAND "${GIT_EXECUTABLE}" apply --reverse --check "${LIMEREPORT_PATCH}"
+  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/vendor/LimeReport"
+  RESULT_VARIABLE LIMEREPORT_PATCH_ALREADY_APPLIED
+  OUTPUT_QUIET ERROR_QUIET)
+if(NOT LIMEREPORT_PATCH_ALREADY_APPLIED EQUAL 0)
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" apply --check "${LIMEREPORT_PATCH}"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/vendor/LimeReport"
+    RESULT_VARIABLE LIMEREPORT_PATCH_CAN_APPLY
+    OUTPUT_VARIABLE LIMEREPORT_PATCH_OUTPUT
+    ERROR_VARIABLE LIMEREPORT_PATCH_ERROR)
+  if(NOT LIMEREPORT_PATCH_CAN_APPLY EQUAL 0)
+    message(FATAL_ERROR "LimeReport patch cannot be applied. Check pinned submodule revision and local modifications: ${LIMEREPORT_PATCH_ERROR}")
+  endif()
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" apply "${LIMEREPORT_PATCH}"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/vendor/LimeReport"
+    RESULT_VARIABLE LIMEREPORT_PATCH_RESULT)
+  if(NOT LIMEREPORT_PATCH_RESULT EQUAL 0)
+    message(FATAL_ERROR "Failed to apply LimeReport downstream patch")
+  endif()
+endif()
 find_package(pybind11 CONFIG REQUIRED)
 find_package(Qt6 QUIET COMPONENTS Core)
 set(USE_QT6 ON CACHE BOOL "" FORCE)
