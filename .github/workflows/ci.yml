@@ -172,7 +172,7 @@ jobs:
           name: windows-wheel-py${{ matrix.python-version }}
           path: wheelhouse/*.whl
   build-macos:
-    runs-on: macos-14
+    runs-on: macos-15-intel
     timeout-minutes: 60
     strategy:
       fail-fast: false
