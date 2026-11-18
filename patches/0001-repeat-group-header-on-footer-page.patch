@@ -1,0 +1,20 @@
+--- a/limereport/lrreportrender.cpp
++++ b/limereport/lrreportrender.cpp
+@@ -1082,14 +1082,15 @@
+ 
+ void ReportRender::renderGroupFooterByHeader(BandDesignIntf* groupHeader)
+ {
+-    if (groupHeader->reprintOnEachPage())
+-        m_reprintableBands.removeOne(groupHeader);
++    // Keep the group header reprintable while its footer is paginated.
++    // Otherwise a footer pushed to the next page loses its route header.
+     foreach (BandDesignIntf* header, groupHeader->childrenByType(BandDesignIntf::GroupHeader)) {
+         renderGroupFooterByHeader(header);
+     }
+     foreach (BandDesignIntf* footer, groupHeader->childrenByType(BandDesignIntf::GroupFooter)) {
+         renderBand(footer, 0, StartNewPageAsNeeded);
+     }
++    // closeDataGroup removes this header after all footers have rendered.
+     closeDataGroup(groupHeader);
+ }
+ 

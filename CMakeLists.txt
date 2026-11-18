@@ -3,6 +3,18 @@ project(limereport_pyqt6 LANGUAGES CXX)
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/vendor/LimeReport/CMakeLists.txt")
   message(FATAL_ERROR "vendor/LimeReport is missing: build from a checkout with submodules or from the sdist which vendors LimeReport 1.7.23")
 endif()
+# Apply the pinned downstream change without relying on Git metadata.
+# Source distributions contain vendor files but no valid submodule .git directory.
+find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
+execute_process(
+  COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/scripts/apply_lime_patch.py"
+          "${CMAKE_CURRENT_SOURCE_DIR}/vendor/LimeReport/limereport/lrreportrender.cpp"
+  RESULT_VARIABLE LIMEREPORT_PATCH_RESULT
+  OUTPUT_VARIABLE LIMEREPORT_PATCH_OUTPUT
+  ERROR_VARIABLE LIMEREPORT_PATCH_ERROR)
+if(NOT LIMEREPORT_PATCH_RESULT EQUAL 0)
+  message(FATAL_ERROR "Cannot apply LimeReport downstream fix: ${LIMEREPORT_PATCH_ERROR}")
+endif()
 find_package(pybind11 CONFIG REQUIRED)
 find_package(Qt6 QUIET COMPONENTS Core)
 set(USE_QT6 ON CACHE BOOL "" FORCE)
@@ -36,6 +48,11 @@ if(APPLE)
 elseif(UNIX)
   set_target_properties(_core PROPERTIES INSTALL_RPATH "$ORIGIN:$ORIGIN/../PyQt6/Qt6/lib" BUILD_WITH_INSTALL_RPATH TRUE INSTALL_RPATH_USE_LINK_PATH FALSE)
 endif()
+# Record the Qt version used to compile the extension in the wheel.
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cpp/_build_qt.py.in"
+               "${CMAKE_CURRENT_BINARY_DIR}/_build_qt.py" @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/_build_qt.py"
+        DESTINATION limereport_pyqt6 COMPONENT python)
 install(
     TARGETS _core
     LIBRARY DESTINATION limereport_pyqt6 COMPONENT python
