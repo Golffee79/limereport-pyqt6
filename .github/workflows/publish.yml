@@ -37,9 +37,9 @@ jobs:
         run: |
           set -euo pipefail
           [[ "$GITHUB_REF_TYPE" == tag ]] || { echo 'Run on a release tag only'; exit 1; }
-          [[ "$GITHUB_REF_NAME" == 'v0.1.2-publish' ]] || { echo 'Unexpected publish tag'; exit 1; }
+          [[ "$GITHUB_REF_NAME" == 'v0.1.2-publish2' ]] || { echo 'Unexpected publish tag'; exit 1; }
           test "$(git show "$EXPECTED_SOURCE_SHA:pyproject.toml" | grep -c 'version = "0.1.2"')" = 1
-          git diff --exit-code "$EXPECTED_SOURCE_SHA" HEAD -- ':! .github/workflows/publish.yml'
+          git diff --exit-code "$EXPECTED_SOURCE_SHA" HEAD -- . ':(exclude).github/workflows/publish.yml'
           test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN_ID" --jq .conclusion)" = success
           test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN_ID" --jq .head_sha)" = "$EXPECTED_SOURCE_SHA"
           echo "source_sha=$EXPECTED_SOURCE_SHA" >> "$GITHUB_OUTPUT"
