@@ -12,8 +12,8 @@ permissions:
   contents: read
 
 env:
-  EXPECTED_SOURCE_SHA: fde86bf96c6c280ec5b67b1ff2779f1bbbd795d7
-  EXPECTED_VERSION: '0.1.2'
+  EXPECTED_SOURCE_SHA: ${{ github.sha }}
+  EXPECTED_VERSION: '0.1.3'
 
 jobs:
   verify:
@@ -37,9 +37,9 @@ jobs:
         run: |
           set -euo pipefail
           [[ "$GITHUB_REF_TYPE" == tag ]] || { echo 'Run on a release tag only'; exit 1; }
-          [[ "$GITHUB_REF_NAME" == 'v0.1.2-publish2' ]] || { echo 'Unexpected publish tag'; exit 1; }
-          test "$(git show "$EXPECTED_SOURCE_SHA:pyproject.toml" | grep -c 'version = "0.1.2"')" = 1
-          git diff --exit-code "$EXPECTED_SOURCE_SHA" HEAD -- . ':(exclude).github/workflows/publish.yml'
+          [[ "$GITHUB_REF_NAME" == 'v0.1.3' ]] || { echo 'Unexpected publish tag'; exit 1; }
+          test "$(git show "$EXPECTED_SOURCE_SHA:pyproject.toml" | grep -c 'version = "0.1.3"')" = 1
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_SHA"
           test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN_ID" --jq .conclusion)" = success
           test "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$CI_RUN_ID" --jq .head_sha)" = "$EXPECTED_SOURCE_SHA"
           echo "source_sha=$EXPECTED_SOURCE_SHA" >> "$GITHUB_OUTPUT"
@@ -70,7 +70,7 @@ jobs:
           for python in ('cp312', 'cp313'):
               assert sum(python in n for n in tags) == 3, tags
           for w in wheels:
-              assert w.name.startswith('limereport_pyqt6-0.1.2-'), w.name
+              assert w.name.startswith('limereport_pyqt6-0.1.3-'), w.name
               with zipfile.ZipFile(w) as z:
                   assert 'limereport_pyqt6/_build_qt.py' in z.namelist()
           with tarfile.open(sdists[0]) as t:
@@ -88,7 +88,7 @@ jobs:
     runs-on: ubuntu-22.04
     environment:
       name: pypi
-      url: https://pypi.org/project/limereport-pyqt6/0.1.2/
+      url: https://pypi.org/project/limereport-pyqt6/0.1.3/
     permissions:
       id-token: write
       contents: read
