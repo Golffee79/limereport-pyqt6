@@ -15,6 +15,14 @@ execute_process(
 if(NOT LIMEREPORT_PATCH_RESULT EQUAL 0)
   message(FATAL_ERROR "Cannot apply LimeReport downstream fix: ${LIMEREPORT_PATCH_ERROR}")
 endif()
+execute_process(
+  COMMAND "${Python_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/scripts/apply_singleton_patch.py"
+          "${CMAKE_CURRENT_SOURCE_DIR}/vendor/LimeReport/limereport/base/lrsingleton.h"
+  RESULT_VARIABLE LIMEREPORT_SINGLETON_PATCH_RESULT
+  ERROR_VARIABLE LIMEREPORT_SINGLETON_PATCH_ERROR)
+if(NOT LIMEREPORT_SINGLETON_PATCH_RESULT EQUAL 0)
+  message(FATAL_ERROR "Cannot apply LimeReport singleton teardown fix: ${LIMEREPORT_SINGLETON_PATCH_ERROR}")
+endif()
 find_package(pybind11 CONFIG REQUIRED)
 find_package(Qt6 QUIET COMPONENTS Core)
 set(USE_QT6 ON CACHE BOOL "" FORCE)
@@ -28,6 +36,18 @@ add_subdirectory(vendor/LimeReport)
 set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME Unspecified)
 pybind11_add_module(_core MODULE cpp/bindings.cpp)
 target_compile_features(_core PRIVATE cxx_std_17)
+target_include_directories(_core PRIVATE
+  vendor/LimeReport/limereport
+  vendor/LimeReport/limereport/base
+  vendor/LimeReport/limereport/bands
+  vendor/LimeReport/limereport/items
+  vendor/LimeReport/limereport/items/editors
+  vendor/LimeReport/limereport/objectinspector
+  vendor/LimeReport/limereport/scriptbrowser
+  vendor/LimeReport/limereport/serializators
+  vendor/LimeReport/limereport/scripteditor
+  vendor/LimeReport/limereport/databrowser
+)
 target_link_libraries(_core PRIVATE limereport-qt6)
 if(DEFINED Python_EXECUTABLE)
   execute_process(

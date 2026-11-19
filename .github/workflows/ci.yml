@@ -88,6 +88,9 @@ jobs:
       - run: python tests/smoke.py
         env:
           QT_QPA_PLATFORM: offscreen
+      - run: python tests/exit_lifecycle.py
+        env:
+          QT_QPA_PLATFORM: offscreen
       - run: |
           f=$(python -c "import limereport_pyqt6._core as m; print(m.__file__)")
           readelf -d "$f" | grep -E "RUNPATH|RPATH"
@@ -164,6 +167,9 @@ jobs:
       - run: python tests/smoke.py
         env:
           QT_QPA_PLATFORM: offscreen
+      - run: python tests/exit_lifecycle.py
+        env:
+          QT_QPA_PLATFORM: offscreen
       - run: python -m pip wheel . --no-deps -w wheelhouse/
         env:
           CMAKE_PREFIX_PATH: ${{ env.Qt6_DIR }}
@@ -216,6 +222,9 @@ jobs:
         env:
           CMAKE_PREFIX_PATH: ${{ env.Qt6_DIR }}
       - run: python tests/smoke.py
+        env:
+          QT_QPA_PLATFORM: offscreen
+      - run: python tests/exit_lifecycle.py
         env:
           QT_QPA_PLATFORM: offscreen
       - run: |

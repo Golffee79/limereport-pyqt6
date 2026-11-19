@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "lrreportengine.h"
+#include "../vendor/LimeReport/limereport/lrscriptenginemanager.h"
 
 namespace py = pybind11;
 
@@ -83,6 +84,7 @@ std::vector<QString> column_names(const py::handle& values)
 
 class ReportEngine
 {
+    inline static int live_engines = 0;
 public:
     ReportEngine()
     {
@@ -90,6 +92,7 @@ public:
             throw std::runtime_error("Create a PyQt6 QApplication before ReportEngine");
         }
         engine = std::make_unique<LimeReport::ReportEngine>();
+        ++live_engines;
     }
 
     ~ReportEngine()
@@ -97,6 +100,11 @@ public:
         if (QCoreApplication::closingDown()) {
             // ponytail: process exit reclaims this after Qt has started teardown.
             engine.release();
+        } else {
+            engine.reset();
+            if (--live_engines == 0) {
+                LimeReport::ScriptEngineManager::destroyIfExists();
+            }
         }
     }
 
